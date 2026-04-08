@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import OrdersManagement from './pages/OrdersManagement';
@@ -11,13 +11,14 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<AdminLogin />} />
-        
         <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Navigate to="/login" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="orders" element={<OrdersManagement />} />
           <Route path="menu" element={<MenuManagement />} />
           <Route path="analytics" element={<AnalyticsStatistics />} />
         </Route>
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

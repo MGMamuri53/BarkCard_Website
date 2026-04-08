@@ -1,4 +1,13 @@
+import { useNavigate } from 'react-router-dom';
+
 export default function AdminLogin() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    navigate('/dashboard');
+  };
+
   return (
     <div className="bg-surface font-body text-on-surface selection:bg-primary-fixed-dim selection:text-on-primary-fixed min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
       {/* Subtle Background Pattern Element */}
@@ -34,7 +43,7 @@ export default function AdminLogin() {
             <p className="font-body text-on-secondary-container text-sm">Please enter your credentials to manage the academic dining ecosystem.</p>
           </div>
 
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Username Field */}
             <div className="space-y-2">
               <label className="block font-label text-sm font-semibold text-on-surface-variant ml-1" htmlFor="username">Username or Campus Email</label>
@@ -77,29 +86,13 @@ export default function AdminLogin() {
               <span className="material-symbols-outlined text-xl">login</span>
             </button>
           </form>
-
-          {/* Security Footer */}
-          <div className="mt-8 pt-6 border-t border-surface-container flex items-center justify-center gap-2 text-outline">
-            <span className="material-symbols-outlined text-sm">encrypted</span>
-            <span className="text-[10px] uppercase tracking-widest font-bold">Secure Academic Gateway</span>
-          </div>
         </div>
 
         {/* Help Link */}
         <p className="text-center mt-8 text-on-secondary-container text-sm">
           Need assistance? <a className="font-bold text-primary hover:underline" href="#">Contact IT Support</a>
         </p>
-
-        {/* Illustration (Bottom) */}
-        <div className="mt-12 opacity-40">
-          <img alt="Academic background" className="w-full h-32 object-cover rounded-xl grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhxZADxiKS-DTKshVCKln9DWMWYzwzDTxEATfWh95NkvlH5VpTy5xUblSnZgdJ_v_49e3iQlEX2m7FUPokgsjMJOarckvyqWk-Op_T_OtzF34mgRHE97m0gsveDgSJu0O7yaaOJGbpyvNio5Chd3ez8w0d3qCjeSGZNggRKIcIht1FqbRML5h7vFcnsHJXCAMbLxh0sE8esOetHGYgnUlK3Ly-Jc2GmTvNCRC9sl6rRqaYNnpEW3yi7s6g7mcYv3QbR4PP6qiNjKk3" />
-        </div>
       </main>
-
-      {/* Decorative Text Anchor */}
-      <div className="fixed bottom-8 right-8 hidden lg:block select-none pointer-events-none">
-        <span className="font-headline text-8xl font-black text-on-surface/[0.03]">BARK</span>
-      </div>
     </div>
   );
 }

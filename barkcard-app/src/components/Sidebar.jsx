@@ -21,7 +21,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2">
-        <Link className={getLinkClasses('/')} to="/">
+        <Link className={getLinkClasses('/dashboard')} to="/dashboard">
           <span className="material-symbols-outlined">dashboard</span>
           <span className="font-headline text-sm">Dashboard</span>
         </Link>

@@ -1,13 +1,459 @@
+import { useState } from 'react';
+
+const initialMenuItems = [
+  {
+    id: 'chicken-sandwich',
+    name: 'Chicken Sandwich',
+    description: 'Herb-grilled, brioche bun',
+    category: 'Main Course',
+    price: 8.5,
+    stock: 42,
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABLMW_alQ7O2KT1cP-zK6reqcp01BkMrS31OmGL5mdTgbktj1kOkdjedfVec9pvGP2vfOLqcDF0dSSNTX_zwPUmj6gtDAn5_0cbwOCLIXOqxG82a8SF4u_mHFxRoFHk4qzj2qqNCoDN4oelexc-ErdUfjb2kynb_Ej0nD890W91hWhSZzfcn0V1T8_xRFL9tX8t3KPBICjsw9q096ShlS3SJMXkaQyTN4bI2kqd3gZhNtnJj8QhUyli2541EMdfA3IGligWKbNRctn'
+  },
+  {
+    id: 'fruit-salad-bowl',
+    name: 'Fruit Salad Bowl',
+    description: 'Seasonal selection, honey glaze',
+    category: 'Sides',
+    price: 5.25,
+    stock: 8,
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRPQYjAP6g-qlI0yFLca8Wfy8FIYEfCGh8O8YznHt-mKFPYV1y4m9zA0BWyqrmHuDU5KfOu4me4cF7RbF4ITilGrFgsJk3FfeErIUaYgJj-oeE4tLLpPGM3486mZMPAzpGNiGGvXMF67iAx0KAqQQOq0SyRRKVXDTbtEiIa3nqUhoPoO46tZMW7ZNIBrmFDrnsU313kEXzD-UXQENiluEHqlkKJNWFG4SNmwAu7K8aY1HylZcZfPDfPyuNGwIKK6h_Sn0eTVdEjgeF'
+  },
+  {
+    id: 'orange-juice',
+    name: 'Orange Juice',
+    description: '100% freshly squeezed',
+    category: 'Beverages',
+    price: 3.5,
+    stock: 0,
+    imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDbRZN0SdzPEWUvSX4vvxAztFr3013pCPkTEO6jYRE5WJPGAB8JqBIvgdKxpOKEQrSewMZFyV54O3Bnu1AWC0aaGy2vUpRs6gwk9ZHQ6G_plmCqz7wrjsVEwNYaL3x_ejlw40yFjOcwNCcM27eZEXxRNjWUoPE4ZYcPFmBPocpeLKUsR4_-8V1xWzjTA65Zj4I1zHrwk2BrsEuGbEJFfSjozWoUdTs_NhFZx-zmklUSqIpUYD1vaHTfp-RBGF6r335SuJ2NaCzDC19H'
+  }
+];
+
+const categoryOptions = ['All Categories', 'Main Course', 'Beverages'];
+
+const defaultFormData = {
+  name: '',
+  description: '',
+  category: 'Main Course',
+  price: '',
+  stock: '',
+  imageUrl: ''
+};
+
+const getStockMeta = (stock) => {
+  if (stock === 0) {
+    return {
+      status: 'Out of Stock',
+      statusClass: 'bg-error-container text-error border border-error/20',
+      stockTextClass: 'text-error',
+      barClass: 'bg-error',
+      imageClass: 'grayscale',
+      nameClass: 'opacity-60'
+    };
+  }
+
+  if (stock <= 10) {
+    return {
+      status: 'Low Stock',
+      statusClass: 'bg-amber-100 text-amber-700 border border-amber-200',
+      stockTextClass: 'text-on-surface',
+      barClass: 'bg-amber-500',
+      imageClass: '',
+      nameClass: ''
+    };
+  }
+
+  return {
+    status: 'Available',
+    statusClass: 'bg-tertiary-container/10 text-tertiary border border-tertiary/20',
+    stockTextClass: 'text-on-surface',
+    barClass: 'bg-primary',
+    imageClass: '',
+    nameClass: ''
+  };
+};
+
+const getStockBarWidth = (stock) => `${Math.min(100, Math.max(0, Math.round((stock / 50) * 100)))}%`;
+
+const formatPrice = (price) => `₱${Number(price).toFixed(2)}`;
+
 export default function MenuManagement() {
+  const defaultPreview = 'https://via.placeholder.com/300x200?text=Upload+or+Enter+URL';
+  const [menuItems, setMenuItems] = useState(initialMenuItems);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All Categories');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [itemPendingDelete, setItemPendingDelete] = useState(null);
+  const [formData, setFormData] = useState(defaultFormData);
+  const [imagePreview, setImagePreview] = useState(defaultPreview);
+  const [imageFile, setImageFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const filteredItems = menuItems.filter((item) => {
+    const categoryMatch = activeCategory === 'All Categories' || item.category === activeCategory;
+    const normalizedQuery = searchTerm.trim().toLowerCase();
+    const searchMatch =
+      normalizedQuery.length === 0 ||
+      item.name.toLowerCase().includes(normalizedQuery) ||
+      item.description.toLowerCase().includes(normalizedQuery) ||
+      item.category.toLowerCase().includes(normalizedQuery);
+
+    return categoryMatch && searchMatch;
+  });
+
+  const totalItems = menuItems.length;
+  const lowInventoryCount = menuItems.filter((item) => item.stock > 0 && item.stock <= 10).length;
+  const outOfStockCount = menuItems.filter((item) => item.stock === 0).length;
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItemId(null);
+    setFormData(defaultFormData);
+    setImageFile(null);
+    setImagePreview(defaultPreview);
+  };
+
+  const openAddModal = () => {
+    setEditingItemId(null);
+    setFormData(defaultFormData);
+    setImageFile(null);
+    setImagePreview(defaultPreview);
+    setIsModalOpen(true);
+  };
+
+  const updatePreviewFromUrl = (url) => {
+    if (url) {
+      setImagePreview(url);
+    } else {
+      setImagePreview(defaultPreview);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === 'imageUrl') {
+      setImageFile(null);
+      updatePreviewFromUrl(value);
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleImageFile = (file) => {
+    if (!file) return;
+    setImageFile(file);
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: ''
+    }));
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    handleImageFile(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    handleImageFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragActive(false);
+  };
+
+  const handleResetImage = () => {
+    setImageFile(null);
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    setImagePreview(defaultPreview);
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItemId(item.id);
+    setFormData({
+      name: item.name,
+      description: item.description,
+      category: item.category,
+      price: String(item.price),
+      stock: String(item.stock),
+      imageUrl: item.imageUrl
+    });
+    setImageFile(null);
+    setImagePreview(item.imageUrl || defaultPreview);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteItem = (item) => {
+    setItemPendingDelete(item);
+  };
+
+  const confirmDeleteItem = () => {
+    if (!itemPendingDelete) return;
+
+    setMenuItems((prev) => prev.filter((item) => item.id !== itemPendingDelete.id));
+    setItemPendingDelete(null);
+  };
+
+  const cancelDeleteItem = () => {
+    setItemPendingDelete(null);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const normalizedName = formData.name.trim();
+    const normalizedDescription = formData.description.trim();
+    const normalizedPrice = Number.parseFloat(formData.price);
+    const normalizedStock = Number.parseInt(formData.stock, 10);
+    const normalizedImageUrl = formData.imageUrl.trim() || imagePreview;
+
+    const nextItem = {
+      id: editingItemId || `${normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
+      name: normalizedName,
+      description: normalizedDescription,
+      category: formData.category,
+      price: Number.isFinite(normalizedPrice) ? normalizedPrice : 0,
+      stock: Number.isFinite(normalizedStock) ? normalizedStock : 0,
+      imageUrl: normalizedImageUrl
+    };
+
+    if (editingItemId) {
+      setMenuItems((prev) => prev.map((item) => (item.id === editingItemId ? nextItem : item)));
+    } else {
+      setMenuItems((prev) => [nextItem, ...prev]);
+    }
+
+    closeModal();
+  };
+
   return (
     <div className="p-8 lg:p-10">
+      {/* Modal Overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-surface-container-lowest border-b border-surface-container-high p-6 flex items-center justify-between">
+              <h3 className="text-2xl font-headline font-bold text-on-surface">
+                {editingItemId ? 'Edit Item' : 'Add New Item'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-outline hover:text-on-surface transition-colors p-1"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+              {/* Item Name */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-on-surface font-label">Item Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Grilled Chicken Sandwich"
+                  className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-on-surface font-label">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Brief description of the item"
+                  rows="3"
+                  className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline resize-none"
+                  required
+                />
+              </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-on-surface font-label">Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface"
+                >
+                  <option>Main Course</option>
+                  <option>Sides</option>
+                  <option>Beverages</option>
+                  <option>Desserts</option>
+                  <option>Breakfast</option>
+                </select>
+              </div>
+
+              {/* Price */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-on-surface font-label">Price (₱)</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
+                  required
+                />
+              </div>
+
+              {/* Stock */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-on-surface font-label">Initial Stock</label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleInputChange}
+                  placeholder="0"
+                  min="0"
+                  className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
+                  required
+                />
+              </div>
+
+              {/* Image URL */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="block text-sm font-semibold text-on-surface font-label">Image URL</label>
+                  <button
+                    type="button"
+                    onClick={handleResetImage}
+                    className="text-xs text-secondary hover:text-on-surface transition-colors"
+                  >
+                    Reset image
+                  </button>
+                </div>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`rounded-2xl p-3 border ${dragActive ? 'border-primary bg-surface-container-highest' : 'border-surface-container'} transition-colors`}
+                >
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-4 py-3 bg-surface-container border-none rounded-lg focus:ring-2 focus:ring-primary focus:bg-surface-container-lowest transition-all text-on-surface placeholder:text-outline"
+                  />
+                  <div className="mt-3 flex flex-col gap-3">
+                    <label className="text-xs text-secondary">Or upload an image file</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="text-sm text-on-surface file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary file:text-on-primary hover:file:bg-primary-container transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-2xl overflow-hidden border border-surface-container-high bg-surface-container-low p-3">
+                  <p className="text-xs text-secondary mb-2">Preview</p>
+                  <div className="aspect-[3/2] overflow-hidden rounded-xl bg-surface-container-high">
+                    <img
+                      src={imagePreview}
+                      alt="Item preview"
+                      className="object-cover w-full h-full"
+                      onError={(e) => { e.currentTarget.src = defaultPreview; }}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-secondary">Drag and drop an image into the box above, or enter a public image URL.</p>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 px-4 py-3 bg-surface-container-high text-on-secondary-container rounded-lg font-semibold hover:bg-surface-container-highest transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-lg font-semibold shadow-md hover:brightness-110 transition-all active:scale-95"
+                >
+                  {editingItemId ? 'Save Changes' : 'Add Item'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {itemPendingDelete && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-lg max-w-md w-full p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-error text-3xl">warning</span>
+              <div>
+                <h3 className="text-xl font-headline font-bold text-on-surface">Delete Item?</h3>
+                <p className="text-sm text-secondary">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-sm text-on-surface">
+              Are you sure you want to delete <span className="font-semibold">{itemPendingDelete.name}</span> from the menu?
+            </p>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={cancelDeleteItem}
+                className="flex-1 px-4 py-3 bg-surface-container-high text-on-secondary-container rounded-lg font-semibold hover:bg-surface-container-highest transition-all active:scale-95"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteItem}
+                className="flex-1 px-4 py-3 bg-error text-on-error rounded-lg font-semibold hover:brightness-110 transition-all active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <header className="flex justify-between items-end mb-12">
         <div className="space-y-1">
           <h2 className="text-4xl font-extrabold tracking-tight text-on-surface">Menu Management</h2>
           <p className="text-secondary text-sm font-body">Manage campus culinary offerings and inventory levels.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-lg font-semibold shadow-md active:scale-95 transition-all">
+        <button onClick={openAddModal} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-lg font-semibold shadow-md active:scale-95 transition-all">
           <span className="material-symbols-outlined">add</span>
           <span>Add New Item</span>
         </button>
@@ -17,12 +463,28 @@ export default function MenuManagement() {
       <div className="bg-surface-container-low rounded-xl p-6 mb-8 flex flex-wrap gap-4 items-center">
         <div className="flex-1 min-w-[300px] relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
-          <input className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-lg focus:ring-2 focus:ring-primary text-sm" placeholder="Search menu items..." type="text" />
+          <input
+            className="w-full pl-12 pr-4 py-3 bg-surface-container-lowest border-none rounded-lg focus:ring-2 focus:ring-primary text-sm"
+            placeholder="Search menu items..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-surface-container-high rounded-full text-sm font-medium text-on-secondary-container hover:bg-secondary-container transition-colors">All Categories</button>
-          <button className="px-4 py-2 bg-surface-container-high rounded-full text-sm font-medium text-on-secondary-container hover:bg-secondary-container transition-colors">Main Course</button>
-          <button className="px-4 py-2 bg-surface-container-high rounded-full text-sm font-medium text-on-secondary-container hover:bg-secondary-container transition-colors">Beverages</button>
+          {categoryOptions.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeCategory === category
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-surface-container-high text-on-secondary-container hover:bg-secondary-container'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -40,99 +502,66 @@ export default function MenuManagement() {
             </tr>
           </thead>
           <tbody className="divide-y divide-transparent">
-            {/* Row 1 */}
-            <tr className="group hover:bg-surface-container-low transition-colors">
-              <td className="px-8 py-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center overflow-hidden">
-                    <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABLMW_alQ7O2KT1cP-zK6reqcp01BkMrS31OmGL5mdTgbktj1kOkdjedfVec9pvGP2vfOLqcDF0dSSNTX_zwPUmj6gtDAn5_0cbwOCLIXOqxG82a8SF4u_mHFxRoFHk4qzj2qqNCoDN4oelexc-ErdUfjb2kynb_Ej0nD890W91hWhSZzfcn0V1T8_xRFL9tX8t3KPBICjsw9q096ShlS3SJMXkaQyTN4bI2kqd3gZhNtnJj8QhUyli2541EMdfA3IGligWKbNRctn" alt="Item" />
-                  </div>
-                  <div>
-                    <p className="font-headline font-bold text-on-surface">Chicken Sandwich</p>
-                    <p className="text-xs text-outline font-body">Herb-grilled, brioche bun</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-6 font-body text-sm text-secondary">Main Course</td>
-              <td className="px-6 py-6 font-headline font-bold text-sm text-right text-on-surface">₱8.50</td>
-              <td className="px-6 py-6 text-center">
-                <div className="text-sm font-bold text-on-surface">42</div>
-                <div className="w-16 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-2 overflow-hidden">
-                  <div className="h-full bg-primary w-[80%] rounded-full"></div>
-                </div>
-              </td>
-              <td className="px-6 py-6">
-                <span className="px-3 py-1 bg-tertiary-container/10 text-tertiary font-label text-[10px] font-extrabold uppercase tracking-wide rounded-full border border-tertiary/20">Available</span>
-              </td>
-              <td className="px-8 py-6 text-right">
-                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 text-secondary hover:text-primary-container"><span className="material-symbols-outlined text-xl">edit</span></button>
-                  <button className="p-2 text-secondary hover:text-error"><span className="material-symbols-outlined text-xl">delete</span></button>
-                </div>
-              </td>
-            </tr>
-            {/* Row 2 */}
-            <tr className="group hover:bg-surface-container-low transition-colors">
-              <td className="px-8 py-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center overflow-hidden">
-                    <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRPQYjAP6g-qlI0yFLca8Wfy8FIYEfCGh8O8YznHt-mKFPYV1y4m9zA0BWyqrmHuDU5KfOu4me4cF7RbF4ITilGrFgsJk3FfeErIUaYgJj-oeE4tLLpPGM3486mZMPAzpGNiGGvXMF67iAx0KAqQQOq0SyRRKVXDTbtEiIa3nqUhoPoO46tZMW7ZNIBrmFDrnsU313kEXzD-UXQENiluEHqlkKJNWFG4SNmwAu7K8aY1HylZcZfPDfPyuNGwIKK6h_Sn0eTVdEjgeF" alt="Item" />
-                  </div>
-                  <div>
-                    <p className="font-headline font-bold text-on-surface">Fruit Salad Bowl</p>
-                    <p className="text-xs text-outline font-body">Seasonal selection, honey glaze</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-6 font-body text-sm text-secondary">Sides</td>
-              <td className="px-6 py-6 font-headline font-bold text-sm text-right text-on-surface">₱5.25</td>
-              <td className="px-6 py-6 text-center">
-                <div className="text-sm font-bold text-on-surface">8</div>
-                <div className="w-16 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-2 overflow-hidden">
-                  <div className="h-full bg-amber-500 w-[20%] rounded-full"></div>
-                </div>
-              </td>
-              <td className="px-6 py-6">
-                <span className="px-3 py-1 bg-amber-100 text-amber-700 font-label text-[10px] font-extrabold uppercase tracking-wide rounded-full border border-amber-200">Low Stock</span>
-              </td>
-              <td className="px-8 py-6 text-right">
-                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 text-secondary hover:text-primary-container"><span className="material-symbols-outlined text-xl">edit</span></button>
-                  <button className="p-2 text-secondary hover:text-error"><span className="material-symbols-outlined text-xl">delete</span></button>
-                </div>
-              </td>
-            </tr>
-            {/* Row 3 */}
-            <tr className="group hover:bg-surface-container-low transition-colors">
-              <td className="px-8 py-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center overflow-hidden grayscale">
-                    <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbRZN0SdzPEWUvSX4vvxAztFr3013pCPkTEO6jYRE5WJPGAB8JqBIvgdKxpOKEQrSewMZFyV54O3Bnu1AWC0aaGy2vUpRs6gwk9ZHQ6G_plmCqz7wrjsVEwNYaL3x_ejlw40yFjOcwNCcM27eZEXxRNjWUoPE4ZYcPFmBPocpeLKUsR4_-8V1xWzjTA65Zj4I1zHrwk2BrsEuGbEJFfSjozWoUdTs_NhFZx-zmklUSqIpUYD1vaHTfp-RBGF6r335SuJ2NaCzDC19H" alt="Item" />
-                  </div>
-                  <div>
-                    <p className="font-headline font-bold text-on-surface opacity-60">Orange Juice</p>
-                    <p className="text-xs text-outline font-body">100% freshly squeezed</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-6 font-body text-sm text-secondary">Beverages</td>
-              <td className="px-6 py-6 font-headline font-bold text-sm text-right text-on-surface">₱3.50</td>
-              <td className="px-6 py-6 text-center">
-                <div className="text-sm font-bold text-error">0</div>
-                <div className="w-16 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-2 overflow-hidden">
-                  <div className="h-full bg-error w-0 rounded-full"></div>
-                </div>
-              </td>
-              <td className="px-6 py-6">
-                <span className="px-3 py-1 bg-error-container text-error font-label text-[10px] font-extrabold uppercase tracking-wide rounded-full border border-error/20">Out of Stock</span>
-              </td>
-              <td className="px-8 py-6 text-right">
-                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 text-secondary hover:text-primary-container"><span className="material-symbols-outlined text-xl">edit</span></button>
-                  <button className="p-2 text-secondary hover:text-error"><span className="material-symbols-outlined text-xl">delete</span></button>
-                </div>
-              </td>
-            </tr>
+            {filteredItems.map((item) => {
+              const stockMeta = getStockMeta(item.stock);
+
+              return (
+                <tr key={item.id} className="group hover:bg-surface-container-low transition-colors">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center overflow-hidden ${stockMeta.imageClass}`}>
+                        <img className="w-full h-full object-cover" src={item.imageUrl} alt={item.name} />
+                      </div>
+                      <div>
+                        <p className={`font-headline font-bold text-on-surface ${stockMeta.nameClass}`}>{item.name}</p>
+                        <p className="text-xs text-outline font-body">{item.description}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-6 font-body text-sm text-secondary">{item.category}</td>
+                  <td className="px-6 py-6 font-headline font-bold text-sm text-right text-on-surface">{formatPrice(item.price)}</td>
+                  <td className="px-6 py-6 text-center">
+                    <div className={`text-sm font-bold ${stockMeta.stockTextClass}`}>{item.stock}</div>
+                    <div className="w-16 h-1.5 bg-surface-container-highest rounded-full mx-auto mt-2 overflow-hidden">
+                      <div
+                        className={`h-full ${stockMeta.barClass} rounded-full`}
+                        style={{ width: getStockBarWidth(item.stock) }}
+                      ></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-6">
+                    <span className={`px-3 py-1 font-label text-[10px] font-extrabold uppercase tracking-wide rounded-full ${stockMeta.statusClass}`}>
+                      {stockMeta.status}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleEditItem(item)}
+                        className="p-2 text-secondary hover:text-primary-container"
+                      >
+                        <span className="material-symbols-outlined text-xl">edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteItem(item)}
+                        className="p-2 text-secondary hover:text-error"
+                      >
+                        <span className="material-symbols-outlined text-xl">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {filteredItems.length === 0 && (
+              <tr>
+                <td colSpan="6" className="px-8 py-12 text-center text-sm text-secondary">
+                  No menu items found for {activeCategory}.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -141,15 +570,15 @@ export default function MenuManagement() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
         <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
           <p className="text-xs font-headline font-bold text-outline uppercase tracking-wider mb-2">Total Items</p>
-          <p className="text-3xl font-headline font-extrabold text-on-surface">124</p>
+          <p className="text-3xl font-headline font-extrabold text-on-surface">{totalItems}</p>
         </div>
         <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
           <p className="text-xs font-headline font-bold text-outline uppercase tracking-wider mb-2">Low Inventory</p>
-          <p className="text-3xl font-headline font-extrabold text-amber-600">08</p>
+          <p className="text-3xl font-headline font-extrabold text-amber-600">{String(lowInventoryCount).padStart(2, '0')}</p>
         </div>
         <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-error/10">
           <p className="text-xs font-headline font-bold text-outline uppercase tracking-wider mb-2">Out of Stock</p>
-          <p className="text-3xl font-headline font-extrabold text-error">03</p>
+          <p className="text-3xl font-headline font-extrabold text-error">{String(outOfStockCount).padStart(2, '0')}</p>
         </div>
         <div className="bg-gradient-to-br from-primary to-primary-container p-6 rounded-xl shadow-md flex flex-col justify-between">
           <p className="text-xs font-headline font-bold text-on-primary/80 uppercase tracking-wider mb-2">Daily Sales Peak</p>

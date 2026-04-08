@@ -1,4 +1,86 @@
+import { useState } from 'react';
+
+const periodAnalytics = {
+  Daily: {
+    summary: {
+      totalRevenue: 12450,
+      revenueChange: '+12.5% from yesterday',
+      averageOrder: 8.45,
+      averageLabel: 'Stable per student capita',
+      itemsSold: 1472,
+      itemsChange: '+4% vs target'
+    },
+    lineChart: {
+      title: 'Daily Sales Revenue',
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      points: [180, 160, 100, 140, 90, 60, 80],
+      peakText: 'Peak: P542.50'
+    },
+    distribution: { completed: 82, pending: 12, canceled: 6 },
+    topItems: [
+      { name: 'Artisan Grilled Chicken Wrap', units: 342, width: 85, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
+      { name: 'Superfood Quinoa Bowl', units: 289, width: 72, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
+      { name: 'Refresh Matcha Smoothie', units: 194, width: 48, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
+      { name: 'Baked Sweet Potato Fries', units: 156, width: 39, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
+    ]
+  },
+  Weekly: {
+    summary: {
+      totalRevenue: 83420,
+      revenueChange: '+8.2% from last week',
+      averageOrder: 8.98,
+      averageLabel: 'Slight lift from lunch rush',
+      itemsSold: 9788,
+      itemsChange: '+6% vs target'
+    },
+    lineChart: {
+      title: 'Weekly Sales Revenue',
+      labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'],
+      points: [170, 150, 120, 110, 95, 70, 60],
+      peakText: 'Peak: P12,482.20'
+    },
+    distribution: { completed: 79, pending: 15, canceled: 6 },
+    topItems: [
+      { name: 'Artisan Grilled Chicken Wrap', units: 2280, width: 88, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
+      { name: 'Superfood Quinoa Bowl', units: 1918, width: 74, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
+      { name: 'Refresh Matcha Smoothie', units: 1302, width: 52, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
+      { name: 'Baked Sweet Potato Fries', units: 915, width: 37, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
+    ]
+  },
+  Monthly: {
+    summary: {
+      totalRevenue: 312900,
+      revenueChange: '+10.9% from last month',
+      averageOrder: 9.12,
+      averageLabel: 'Improved due to combo bundles',
+      itemsSold: 35640,
+      itemsChange: '+9% vs target'
+    },
+    lineChart: {
+      title: 'Monthly Sales Revenue',
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+      points: [190, 165, 140, 120, 100, 85, 70],
+      peakText: 'Peak: P48,930.00'
+    },
+    distribution: { completed: 81, pending: 11, canceled: 8 },
+    topItems: [
+      { name: 'Artisan Grilled Chicken Wrap', units: 9120, width: 90, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
+      { name: 'Superfood Quinoa Bowl', units: 7510, width: 76, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
+      { name: 'Refresh Matcha Smoothie', units: 4960, width: 50, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
+      { name: 'Baked Sweet Potato Fries', units: 3740, width: 38, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
+    ]
+  }
+};
+
+const formatCurrency = (amount) => `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export default function AnalyticsStatistics() {
+  const [selectedPeriod, setSelectedPeriod] = useState('Monthly');
+  const analytics = periodAnalytics[selectedPeriod];
+  const linePath = analytics.lineChart.points
+    .map((value, index) => `${index === 0 ? 'M' : 'L'}${index * 133.33},${value}`)
+    .join(' ');
+
   return (
     <div className="p-8 lg:p-12">
       {/* Header Section */}
@@ -9,9 +91,19 @@ export default function AnalyticsStatistics() {
         </div>
         {/* Date Range Filter */}
         <div className="inline-flex p-1 bg-surface-container-low rounded-lg shadow-inner">
-          <button className="px-4 py-2 text-sm font-semibold rounded-md transition-all text-on-surface-variant hover:bg-surface-container">Daily</button>
-          <button className="px-4 py-2 text-sm font-semibold rounded-md transition-all text-on-surface-variant hover:bg-surface-container">Weekly</button>
-          <button className="px-4 py-2 text-sm font-semibold rounded-md bg-surface-container-lowest text-primary shadow-sm">Monthly</button>
+          {Object.keys(periodAnalytics).map((period) => (
+            <button
+              key={period}
+              onClick={() => setSelectedPeriod(period)}
+              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
+                selectedPeriod === period
+                  ? 'bg-surface-container-lowest text-primary shadow-sm'
+                  : 'text-on-surface-variant hover:bg-surface-container'
+              }`}
+            >
+              {period}
+            </button>
+          ))}
         </div>
       </header>
       
@@ -20,9 +112,9 @@ export default function AnalyticsStatistics() {
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-[0_12px_32px_-4px_rgba(26,28,28,0.04)] flex justify-between items-start">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Total Revenue</p>
-            <h3 className="text-3xl font-black text-primary">₱12,450.00</h3>
+            <h3 className="text-3xl font-black text-primary">{formatCurrency(analytics.summary.totalRevenue)}</h3>
             <p className="text-xs text-tertiary-container mt-2 flex items-center font-semibold">
-              <span className="material-symbols-outlined text-[14px] mr-1">trending_up</span> +12.5% from last month
+              <span className="material-symbols-outlined text-[14px] mr-1">trending_up</span> {analytics.summary.revenueChange}
             </p>
           </div>
           <div className="p-3 bg-primary-container/10 rounded-lg">
@@ -32,9 +124,9 @@ export default function AnalyticsStatistics() {
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-[0_12px_32px_-4px_rgba(26,28,28,0.04)] flex justify-between items-start">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Average Order</p>
-            <h3 className="text-3xl font-black text-on-surface">₱8.45</h3>
+            <h3 className="text-3xl font-black text-on-surface">{formatCurrency(analytics.summary.averageOrder)}</h3>
             <p className="text-xs text-on-surface-variant mt-2 flex items-center font-medium">
-              <span className="material-symbols-outlined text-[14px] mr-1">analytics</span> Stable per student capita
+              <span className="material-symbols-outlined text-[14px] mr-1">analytics</span> {analytics.summary.averageLabel}
             </p>
           </div>
           <div className="p-3 bg-secondary-container rounded-lg">
@@ -44,9 +136,9 @@ export default function AnalyticsStatistics() {
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-[0_12px_32px_-4px_rgba(26,28,28,0.04)] flex justify-between items-start">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Items Sold</p>
-            <h3 className="text-3xl font-black text-on-surface">1,472</h3>
+            <h3 className="text-3xl font-black text-on-surface">{analytics.summary.itemsSold.toLocaleString('en-PH')}</h3>
             <p className="text-xs text-tertiary-container mt-2 flex items-center font-semibold">
-              <span className="material-symbols-outlined text-[14px] mr-1">arrow_upward</span> +4% vs target
+              <span className="material-symbols-outlined text-[14px] mr-1">arrow_upward</span> {analytics.summary.itemsChange}
             </p>
           </div>
           <div className="p-3 bg-tertiary-fixed rounded-lg">
@@ -60,7 +152,7 @@ export default function AnalyticsStatistics() {
         {/* Line Chart */}
         <div className="lg:col-span-8 bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_-4px_rgba(26,28,28,0.06)]">
           <div className="flex justify-between items-center mb-10">
-            <h4 className="text-xl font-bold tracking-tight">Daily Sales Revenue</h4>
+            <h4 className="text-xl font-bold tracking-tight">{analytics.lineChart.title}</h4>
             <span className="material-symbols-outlined text-on-surface-variant">more_horiz</span>
           </div>
           <div className="relative h-64 w-full flex items-end justify-between gap-1">
@@ -71,7 +163,7 @@ export default function AnalyticsStatistics() {
               <div className="border-t border-zinc-300 w-full h-0"></div>
             </div>
             <svg className="absolute bottom-0 left-0 w-full h-full overflow-visible" preserveAspectRatio="none">
-              <path d="M0,180 Q100,160 200,100 T400,140 T600,60 T800,80" fill="none" stroke="url(#lineGradient)" strokeLinecap="round" strokeWidth="4"></path>
+              <path d={linePath} fill="none" stroke="url(#lineGradient)" strokeLinecap="round" strokeWidth="4"></path>
               <defs>
                 <linearGradient id="lineGradient" x1="0" x2="1" y1="0" y2="0">
                   <stop offset="0%" stopColor="#0d631b"></stop>
@@ -80,10 +172,12 @@ export default function AnalyticsStatistics() {
               </defs>
             </svg>
             <div className="absolute left-1/2 top-12 -translate-x-1/2 bg-on-surface text-white px-3 py-1 rounded text-xs font-bold shadow-lg">
-              Peak: $542.50
+              {analytics.lineChart.peakText}
             </div>
             <div className="flex justify-between w-full mt-auto pt-4 text-[10px] uppercase font-black tracking-widest text-zinc-400">
-              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+              {analytics.lineChart.labels.map((label) => (
+                <span key={label}>{label}</span>
+              ))}
             </div>
           </div>
         </div>
@@ -108,21 +202,21 @@ export default function AnalyticsStatistics() {
                 <div className="w-3 h-3 rounded-full bg-primary"></div>
                 <span className="text-sm font-medium">Completed</span>
               </div>
-              <span className="text-sm font-bold">82%</span>
+              <span className="text-sm font-bold">{analytics.distribution.completed}%</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-secondary"></div>
                 <span className="text-sm font-medium">Pending</span>
               </div>
-              <span className="text-sm font-bold">12%</span>
+              <span className="text-sm font-bold">{analytics.distribution.pending}%</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-error"></div>
                 <span className="text-sm font-medium">Canceled</span>
               </div>
-              <span className="text-sm font-bold">6%</span>
+              <span className="text-sm font-bold">{analytics.distribution.canceled}%</span>
             </div>
           </div>
         </div>
@@ -134,57 +228,23 @@ export default function AnalyticsStatistics() {
             <button className="text-primary text-xs font-bold hover:underline">View Full Menu Performance</button>
           </div>
           <div className="space-y-6">
-            <div className="group">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-on-surface flex items-center">
-                  <img className="w-8 h-8 rounded-full mr-3 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk" alt="Item" />
-                  Artisan Grilled Chicken Wrap
-                </span>
-                <span className="text-sm font-black text-on-surface">342 Units</span>
+            {analytics.topItems.map((item) => (
+              <div key={item.name} className="group">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-bold text-on-surface flex items-center">
+                    <img className="w-8 h-8 rounded-full mr-3 object-cover" src={item.image} alt="Item" />
+                    {item.name}
+                  </span>
+                  <span className="text-sm font-black text-on-surface">{item.units.toLocaleString('en-PH')} Units</span>
+                </div>
+                <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+                  <div
+                    className={`h-full bg-gradient-to-r from-primary to-primary-container rounded-full ${item.opacity}`}
+                    style={{ width: `${item.width}%` }}
+                  ></div>
+                </div>
               </div>
-              <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full" style={{ width: '85%' }}></div>
-              </div>
-            </div>
-            
-            <div className="group">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-on-surface flex items-center">
-                  <img className="w-8 h-8 rounded-full mr-3 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy" alt="Item" />
-                  Superfood Quinoa Bowl
-                </span>
-                <span className="text-sm font-black text-on-surface">289 Units</span>
-              </div>
-              <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full opacity-80" style={{ width: '72%' }}></div>
-              </div>
-            </div>
-            
-            <div className="group">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-on-surface flex items-center">
-                  <img className="w-8 h-8 rounded-full mr-3 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa" alt="Item" />
-                  Refresh Matcha Smoothie
-                </span>
-                <span className="text-sm font-black text-on-surface">194 Units</span>
-              </div>
-              <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full opacity-60" style={{ width: '48%' }}></div>
-              </div>
-            </div>
-            
-            <div className="group">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-on-surface flex items-center">
-                  <img className="w-8 h-8 rounded-full mr-3 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA" alt="Item" />
-                  Baked Sweet Potato Fries
-                </span>
-                <span className="text-sm font-black text-on-surface">156 Units</span>
-              </div>
-              <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full opacity-40" style={{ width: '39%' }}></div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

@@ -1,4 +1,18 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const recentOrders = [
+    { student: 'Julian Dasher', id: '#BK-9021', items: 'Quinoa Salad, Apple Juice', total: '₱12.50', status: 'Completed', time: '09:15 AM' },
+    { student: 'Maya Sterling', id: '#BK-9022', items: 'Veggie Burger, Fries', total: '₱14.20', status: 'In Progress', time: '09:42 AM' },
+    { student: 'Leo Hudson', id: '#BK-9023', items: 'Classic Club, Coffee', total: '₱11.00', status: 'Completed', time: '10:03 AM' },
+    { student: 'Alex Porter', id: '#BK-9024', items: 'Pesto Pasta, Water', total: '₱15.50', status: 'Pending', time: '10:28 AM' },
+    { student: 'Nina Cole', id: '#BK-9025', items: 'Tuna Wrap, Latte', total: '₱13.75', status: 'Completed', time: '10:50 AM' },
+  ];
+
   return (
     <div className="p-8 space-y-8">
       {/* Page Title & Quick Actions */}
@@ -8,11 +22,11 @@ export default function Dashboard() {
           <p className="text-zinc-500 mt-1">Overview of today's academic dining operations.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 bg-surface-container-high px-5 py-2.5 rounded-lg text-on-secondary-container font-semibold text-sm hover:bg-zinc-200 transition-all active:scale-95">
+          <button onClick={() => navigate('/orders')} className="flex items-center gap-2 bg-surface-container-high px-5 py-2.5 rounded-lg text-on-secondary-container font-semibold text-sm hover:bg-zinc-200 transition-all active:scale-95">
             <span className="material-symbols-outlined text-lg">list_alt</span>
             View All Orders
           </button>
-          <button className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container px-6 py-2.5 rounded-lg text-white font-semibold text-sm editorial-shadow hover:brightness-110 transition-all active:scale-95">
+          <button onClick={() => navigate('/menu')} className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container px-6 py-2.5 rounded-lg text-white font-semibold text-sm editorial-shadow hover:brightness-110 transition-all active:scale-95">
             <span className="material-symbols-outlined text-lg">add_circle</span>
             Add New Item
           </button>
@@ -78,7 +92,7 @@ export default function Dashboard() {
           <div className="bg-surface-container-lowest rounded-xl editorial-shadow overflow-hidden">
             <div className="p-6 flex items-center justify-between border-b border-surface-container">
               <h3 className="text-xl font-black font-headline text-on-surface">Recent Orders</h3>
-              <button className="text-primary text-sm font-bold hover:underline">View History</button>
+              <button onClick={() => setIsHistoryOpen(true)} className="text-primary text-sm font-bold hover:underline">View History</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -219,6 +233,73 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {isHistoryOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-surface-container-lowest border-b border-surface-container p-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black font-headline text-on-surface">Order History</h3>
+                <p className="text-sm text-secondary">Most recent orders in the last few hours.</p>
+              </div>
+              <button
+                onClick={() => setIsHistoryOpen(false)}
+                className="text-on-surface hover:text-primary transition-colors p-1"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low">
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Time</th>
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Student</th>
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Order ID</th>
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Items</th>
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Total</th>
+                      <th className="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider font-label">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container-low">
+                    {recentOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-surface-container-low transition-colors group">
+                        <td className="px-6 py-4 text-sm text-zinc-500">{order.time}</td>
+                        <td className="px-6 py-4 text-sm font-semibold text-on-surface">{order.student}</td>
+                        <td className="px-6 py-4 text-sm font-mono text-zinc-500">{order.id}</td>
+                        <td className="px-6 py-4 text-sm text-zinc-600">{order.items}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-on-surface">{order.total}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            order.status === 'Completed'
+                              ? 'bg-tertiary-container text-on-tertiary-container'
+                              : order.status === 'In Progress'
+                              ? 'bg-primary-container text-on-primary-container'
+                              : order.status === 'Pending'
+                              ? 'bg-surface-container-high text-zinc-500'
+                              : 'bg-surface-container-high text-zinc-500'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-surface-container">
+                <button
+                  onClick={() => setIsHistoryOpen(false)}
+                  className="px-5 py-3 rounded-lg bg-surface-container-high text-on-secondary-container font-semibold hover:bg-surface-container transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
