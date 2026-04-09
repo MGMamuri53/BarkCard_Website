@@ -1,17 +1,65 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Dashboard() {
+const avatarBackgrounds = [
+  'bg-primary-fixed-dim text-primary',
+  'bg-secondary-fixed-dim text-secondary',
+  'bg-tertiary-fixed-dim text-tertiary',
+  'bg-error-container text-error',
+  'bg-primary-container text-on-primary-container'
+];
+
+const getInitials = (name) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+
+const getOrderTime = (dateTime) => dateTime.split(', ').at(-1) ?? dateTime;
+
+const getStatusStyle = (status) => {
+  switch (status) {
+    case 'Pending':
+      return 'bg-secondary-container text-on-secondary-container';
+    case 'Preparing':
+      return 'bg-tertiary-fixed text-on-tertiary-fixed';
+    case 'Ready':
+      return 'bg-tertiary-container text-on-tertiary-container';
+    case 'Completed':
+      return 'bg-primary-container text-on-primary-container';
+    case 'Cancelled':
+      return 'bg-error-container text-on-error-container';
+    default:
+      return 'bg-surface-container-high text-zinc-500';
+  }
+};
+
+export default function Dashboard({ orders = [], menuItems = [] }) {
   const navigate = useNavigate();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-
-  const recentOrders = [
-    { student: 'Julian Dasher', id: '#BK-9021', items: 'Quinoa Salad, Apple Juice', total: '₱12.50', status: 'Completed', time: '09:15 AM' },
-    { student: 'Maya Sterling', id: '#BK-9022', items: 'Veggie Burger, Fries', total: '₱14.20', status: 'In Progress', time: '09:42 AM' },
-    { student: 'Leo Hudson', id: '#BK-9023', items: 'Classic Club, Coffee', total: '₱11.00', status: 'Completed', time: '10:03 AM' },
-    { student: 'Alex Porter', id: '#BK-9024', items: 'Pesto Pasta, Water', total: '₱15.50', status: 'Pending', time: '10:28 AM' },
-    { student: 'Nina Cole', id: '#BK-9025', items: 'Tuna Wrap, Latte', total: '₱13.75', status: 'Completed', time: '10:50 AM' },
-  ];
+  const recentOrders = orders.slice(0, 4);
+  const totalOrders = orders.length;
+  const alertItems = menuItems
+    .filter((item) => item.stock <= 10)
+    .sort((a, b) => a.stock - b.stock);
+  const lowStockCount = alertItems.length;
+  const pendingOrders = orders.filter((order) => order.status === 'Pending').length;
+  const completedOrders = orders.filter((order) => order.status === 'Completed').length;
+  const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+  const topSellingItem = orders
+    .flatMap((order) => order.orderItems)
+    .reduce((totals, item) => {
+      totals[item.name] = (totals[item.name] ?? 0) + item.quantity;
+      return totals;
+    }, {});
+  const [topItemName = 'No item data', topItemOrders = 0] = Object.entries(topSellingItem).sort((left, right) => right[1] - left[1])[0] ?? [];
+  const totalRevenue = orders.reduce((sum, order) => {
+    const value = parseFloat(order.total.replace(/[^0-9.]/g, ''));
+    return sum + (isNaN(value) ? 0 : value);
+  }, 0);
+  const totalRevenueFormatted = `₱${totalRevenue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div className="p-8 space-y-8">
@@ -41,10 +89,10 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-primary/40 text-3xl">calendar_today</span>
           </div>
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-label">Total Orders Today</p>
-          <h3 className="text-3xl font-black font-headline text-primary mt-1">142</h3>
+          <h3 className="text-3xl font-black font-headline text-primary mt-1">{totalOrders}</h3>
           <div className="mt-2 flex items-center gap-1 text-xs text-tertiary font-medium">
             <span className="material-symbols-outlined text-sm">trending_up</span>
-            12% from yesterday
+            Synced with live order list
           </div>
         </div>
         {/* Card 2 */}
@@ -53,8 +101,8 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-primary/40 text-3xl">pending_actions</span>
           </div>
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-label">Pending Orders</p>
-          <h3 className="text-3xl font-black font-headline text-primary mt-1">08</h3>
-          <div className="mt-2 text-xs text-zinc-400 font-medium">Updated 2m ago</div>
+          <h3 className="text-3xl font-black font-headline text-primary mt-1">{pendingOrders}</h3>
+          <div className="mt-2 text-xs text-zinc-400 font-medium">Currently awaiting action</div>
         </div>
         {/* Card 3 */}
         <div className="bg-surface-container-lowest p-6 rounded-xl editorial-shadow group hover:bg-primary-container/5 transition-colors duration-300">
@@ -62,8 +110,8 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-primary/40 text-3xl">check_circle</span>
           </div>
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-label">Completed</p>
-          <h3 className="text-3xl font-black font-headline text-primary mt-1">134</h3>
-          <div className="mt-2 text-xs text-zinc-400 font-medium">94% efficiency rate</div>
+          <h3 className="text-3xl font-black font-headline text-primary mt-1">{completedOrders}</h3>
+          <div className="mt-2 text-xs text-zinc-400 font-medium">{completionRate}% completion rate</div>
         </div>
         {/* Card 4 */}
         <div className="bg-surface-container-lowest p-6 rounded-xl editorial-shadow group hover:bg-error/5 transition-colors duration-300">
@@ -71,8 +119,8 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-error/40 text-3xl">warning</span>
           </div>
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-label">Low Stock Items</p>
-          <h3 className="text-3xl font-black font-headline text-error mt-1">03</h3>
-          <div className="mt-2 text-xs text-error font-medium">Action required</div>
+          <h3 className="text-3xl font-black font-headline text-error mt-1">{String(lowStockCount).padStart(2, '0')}</h3>
+          <div className="mt-2 text-xs text-error font-medium">{lowStockCount > 0 ? 'Action required' : 'All items stocked'}</div>
         </div>
         {/* Card 5 */}
         <div className="bg-surface-container-lowest p-6 rounded-xl editorial-shadow group hover:bg-primary-container/5 transition-colors duration-300">
@@ -80,8 +128,11 @@ export default function Dashboard() {
             <span className="material-symbols-outlined text-primary/40 text-3xl">stars</span>
           </div>
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-label">Top Selling Item</p>
-          <h3 className="text-xl font-black font-headline text-primary mt-1">Vegan Bowl</h3>
-          <div className="mt-2 text-xs text-zinc-400 font-medium">42 portions sold</div>
+          <h3 className="text-xl font-black font-headline text-primary mt-1">{topItemName}</h3>
+          <div className="mt-2 text-xs text-zinc-400 font-medium">
+            {topItemOrders} portion{topItemOrders === 1 ? '' : 's'} sold
+            {(() => { const m = menuItems.find((i) => i.name === topItemName); return m ? ` · ${m.stock} left` : ''; })()}
+          </div>
         </div>
       </div>
 
@@ -106,62 +157,26 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-container-low">
-                  <tr className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary-fixed-dim flex items-center justify-center text-primary font-bold text-xs">JD</div>
-                        <span className="text-sm font-semibold text-on-surface">Julian Dasher</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-mono text-zinc-500">#BK-9021</td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">Quinoa Salad, Apple Juice</td>
-                    <td className="px-6 py-4 text-sm font-bold text-on-surface">₱12.50</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-container text-on-tertiary-container">Completed</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-secondary-fixed-dim flex items-center justify-center text-secondary font-bold text-xs">MS</div>
-                        <span className="text-sm font-semibold text-on-surface">Maya Sterling</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-mono text-zinc-500">#BK-9022</td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">Veggie Burger, Fries</td>
-                    <td className="px-6 py-4 text-sm font-bold text-on-surface">₱14.20</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary-container text-on-primary-container">In Progress</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-tertiary font-bold text-xs">LH</div>
-                        <span className="text-sm font-semibold text-on-surface">Leo Hudson</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-mono text-zinc-500">#BK-9023</td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">Classic Club, Coffee</td>
-                    <td className="px-6 py-4 text-sm font-bold text-on-surface">₱11.00</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-container text-on-tertiary-container">Completed</span>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-error-container flex items-center justify-center text-error font-bold text-xs">AP</div>
-                        <span className="text-sm font-semibold text-on-surface">Alex Porter</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-mono text-zinc-500">#BK-9024</td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">Pesto Pasta, Water</td>
-                    <td className="px-6 py-4 text-sm font-bold text-on-surface">₱15.50</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-zinc-500">Pending</span>
-                    </td>
-                  </tr>
+                  {recentOrders.map((order, index) => (
+                    <tr key={order.id} className="hover:bg-surface-container-low transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${avatarBackgrounds[index % avatarBackgrounds.length]}`}>
+                            {getInitials(order.student)}
+                          </div>
+                          <span className="text-sm font-semibold text-on-surface">{order.student}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-mono text-zinc-500">{order.id}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-600">{order.items}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-on-surface">{order.total}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -177,27 +192,22 @@ export default function Dashboard() {
               <h4 className="font-bold font-headline text-on-surface">Inventory Alerts</h4>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-on-surface">Whole Wheat Bread</p>
-                  <p className="text-xs text-zinc-400">2 units left</p>
-                </div>
-                <button className="text-xs font-bold text-primary hover:underline">Reorder</button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-on-surface">Greek Yogurt</p>
-                  <p className="text-xs text-zinc-400">5 units left</p>
-                </div>
-                <button className="text-xs font-bold text-primary hover:underline">Reorder</button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-on-surface">Organic Milk</p>
-                  <p className="text-xs text-zinc-400">Out of Stock</p>
-                </div>
-                <button className="text-xs font-bold text-error hover:underline">Urgent</button>
-              </div>
+              {alertItems.length === 0 ? (
+                <p className="text-sm text-zinc-400">All menu items are well stocked.</p>
+              ) : (
+                alertItems.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-on-surface">{item.name}</p>
+                      <p className="text-xs text-zinc-400">{item.stock === 0 ? 'Out of Stock' : `${item.stock} units left`}</p>
+                    </div>
+                    {item.stock === 0
+                      ? <button className="text-xs font-bold text-error hover:underline">Urgent</button>
+                      : <button className="text-xs font-bold text-primary hover:underline">Reorder</button>
+                    }
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -224,12 +234,12 @@ export default function Dashboard() {
             <div className="absolute -right-4 -bottom-4 opacity-10">
               <span className="material-symbols-outlined text-[120px]">account_balance_wallet</span>
             </div>
-            <h4 className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Weekly Revenue</h4>
-            <p className="text-3xl font-black font-headline">₱14,582.40</p>
+            <h4 className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Total Revenue</h4>
+            <p className="text-3xl font-black font-headline">{totalRevenueFormatted}</p>
             <div className="mt-4 h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full bg-white w-3/4 rounded-full"></div>
+              <div className="h-full bg-white rounded-full" style={{ width: `${Math.min(completionRate, 100)}%` }}></div>
             </div>
-            <p className="text-[10px] mt-2 opacity-80">75% of monthly target reached</p>
+            <p className="text-[10px] mt-2 opacity-80">Across {totalOrders} order{totalOrders === 1 ? '' : 's'} • {completionRate}% completed</p>
           </div>
         </div>
       </div>
@@ -263,23 +273,15 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-surface-container-low">
-                    {recentOrders.map((order) => (
+                    {orders.map((order) => (
                       <tr key={order.id} className="hover:bg-surface-container-low transition-colors group">
-                        <td className="px-6 py-4 text-sm text-zinc-500">{order.time}</td>
+                        <td className="px-6 py-4 text-sm text-zinc-500">{getOrderTime(order.dateTime)}</td>
                         <td className="px-6 py-4 text-sm font-semibold text-on-surface">{order.student}</td>
                         <td className="px-6 py-4 text-sm font-mono text-zinc-500">{order.id}</td>
                         <td className="px-6 py-4 text-sm text-zinc-600">{order.items}</td>
                         <td className="px-6 py-4 text-sm font-bold text-on-surface">{order.total}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            order.status === 'Completed'
-                              ? 'bg-tertiary-container text-on-tertiary-container'
-                              : order.status === 'In Progress'
-                              ? 'bg-primary-container text-on-primary-container'
-                              : order.status === 'Pending'
-                              ? 'bg-surface-container-high text-zinc-500'
-                              : 'bg-surface-container-high text-zinc-500'
-                          }`}>
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}>
                             {order.status}
                           </span>
                         </td>

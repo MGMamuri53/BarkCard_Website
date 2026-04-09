@@ -1,106 +1,61 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 
-export default function OrdersManagement() {
+export default function OrdersManagement({ orders, setOrders }) {
+  const { globalSearchTerm = '' } = useOutletContext() ?? {};
   const [selectedStatus, setSelectedStatus] = useState('All Orders');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 8;
 
-  const [orders, setOrders] = useState([
-    {
-      id: '#BC-9921',
-      student: 'Alexander Chen',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGYyIQxVoeGBuoOUtJUDb16dHvMvYkG60DtrUzMsaXKAQ1sjh3Fi9sQQKYqRGhNmtEyTYL7Ka9fGnFEdjmfvQY1qzPLw-1i-sv_XGQUUFp2Nl9DromD1INCNgJw1pfjE7pl3RNv2PFxLZO2_ZcIcAPaomwU0VrZkCNg9XqEe9GJECATiDwnjnKrbgGfn95pxdi4CyQotrn6CFBOGZ0oHdOm_DHvybwDZh4QV9m3vrmz9wyNoSrQdpPdf1UXOG1tD5MN3SklvFIeWsf',
-      items: 'Quinoa Bowl, Green Tea',
-      total: '₱14.50',
-      dateTime: 'Oct 24, 11:32 AM',
-      status: 'Pending',
-      studentId: 'STU-2024-001',
-      email: 'alexander.chen@university.edu',
-      phone: '+63 917 123 4567',
-      paymentMethod: 'BarkCard Balance',
-      specialInstructions: 'Extra spicy please',
-      orderItems: [
-        { name: 'Quinoa Bowl', quantity: 1, price: '₱12.00' },
-        { name: 'Green Tea', quantity: 1, price: '₱2.50' }
-      ]
-    },
-    {
-      id: '#BC-9922',
-      student: 'Maya Rodriguez',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBXYs7HeIx3jmfjqVDVs6O2uqm0LNu8xg1atLjpy1a-9DmIWxiHjNNktAij3ckt0oSVJVcOqJcGe3d6r1_XEmEgqwvDOsbtbibuSZz0gmM7tlg6QHOuOlYGVmrtcAxcf4-vz7T8S_B6oEy9P9i5kPaxz2iZyySDRTiLOTpASO2r13VzmVe4hM8RS1g6nwjsxs70y_6Of7v9UWMLVMLVdH5EOMhRpsRrZJc1rs0pQ4PLtsWeQrtUGI_AwY_8vwfc-EFGAUC6916Icfqk',
-      items: 'Double Cheeseburger, Fries',
-      total: '₱18.25',
-      dateTime: 'Oct 24, 11:28 AM',
-      status: 'Preparing',
-      studentId: 'STU-2024-002',
-      email: 'maya.rodriguez@university.edu',
-      phone: '+63 917 234 5678',
-      paymentMethod: 'Cash',
-      specialInstructions: 'No onions',
-      orderItems: [
-        { name: 'Double Cheeseburger', quantity: 1, price: '₱15.00' },
-        { name: 'Fries', quantity: 1, price: '₱3.25' }
-      ]
-    },
-    {
-      id: '#BC-9923',
-      student: 'Liam O\'Connor',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcfWBviL48HTPXj-qtk4rZ1G5v6EWgPkciCarX-o-ip9iXncBelRVOCv9zGgkratT5mY4pKzrSVG66z72sVuC-X8rRhzxmGzqEens_0SH7cUnIBogs4VyOylmDbg2Xqz00A3VjVf5azcpjllvDkxpGlm_CSlgMZ3-mhjp275Tc4IcD0gwr6L-0-V5gGJXF3Bk4z9CP1ZIo-mDPJM7t1UEQ7lJiAA3SyW1A2kuwUPOehGLit7a-EM3Fh0wauYYtl6nlczXkEP5-QlSf',
-      items: 'Caesar Salad, Apple',
-      total: '₱12.00',
-      dateTime: 'Oct 24, 11:15 AM',
-      status: 'Ready',
-      studentId: 'STU-2024-003',
-      email: 'liam.oconnor@university.edu',
-      phone: '+63 917 345 6789',
-      paymentMethod: 'BarkCard Balance',
-      specialInstructions: 'Dressing on the side',
-      orderItems: [
-        { name: 'Caesar Salad', quantity: 1, price: '₱10.00' },
-        { name: 'Apple', quantity: 1, price: '₱2.00' }
-      ]
-    },
-    {
-      id: '#BC-9924',
-      student: 'Sophia Patel',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGYyIQxVoeGBuoOUtJUDb16dHvMvYkG60DtrUzMsaXKAQ1sjh3Fi9sQQKYqRGhNmtEyTYL7Ka9fGnFEdjmfvQY1qzPLw-1i-sv_XGQUUFp2Nl9DromD1INCNgJw1pfjE7pl3RNv2PFxLZO2_ZcIcAPaomwU0VrZkCNg9XqEe9GJECATiDwnjnKrbgGfn95pxdi4CyQotrn6CFBOGZ0oHdOm_DHvybwDZh4QV9m3vrmz9wyNoSrQdpPdf1UXOG1tD5MN3SklvFIeWsf',
-      items: 'Veggie Wrap, Orange Juice',
-      total: '₱13.75',
-      dateTime: 'Oct 24, 10:45 AM',
-      status: 'Completed',
-      studentId: 'STU-2024-004',
-      email: 'sophia.patel@university.edu',
-      phone: '+63 917 456 7890',
-      paymentMethod: 'BarkCard Balance',
-      specialInstructions: 'Extra veggies',
-      orderItems: [
-        { name: 'Veggie Wrap', quantity: 1, price: '₱11.00' },
-        { name: 'Orange Juice', quantity: 1, price: '₱2.75' }
-      ]
-    },
-    {
-      id: '#BC-9925',
-      student: 'Ethan Kim',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBXYs7HeIx3jmfjqVDVs6O2uqm0LNu8xg1atLjpy1a-9DmIWxiHjNNktAij3ckt0oSVJVcOqJcGe3d6r1_XEmEgqwvDOsbtbibuSZz0gmM7tlg6QHOuOlYGVmrtcAxcf4-vz7T8S_B6oEy9P9i5kPaxz2iZyySDRTiLOTpASO2r13VzmVe4hM8RS1g6nwjsxs70y_6Of7v9UWMLVMLVdH5EOMhRpsRrZJc1rs0pQ4PLtsWeQrtUGI_AwY_8vwfc-EFGAUC6916Icfqk',
-      items: 'Chicken Sandwich, Coffee',
-      total: '₱16.00',
-      dateTime: 'Oct 24, 10:30 AM',
-      status: 'Cancelled',
-      studentId: 'STU-2024-005',
-      email: 'ethan.kim@university.edu',
-      phone: '+63 917 567 8901',
-      paymentMethod: 'Cash',
-      specialInstructions: 'Cancelled due to dietary restrictions',
-      orderItems: [
-        { name: 'Chicken Sandwich', quantity: 1, price: '₱13.00' },
-        { name: 'Coffee', quantity: 1, price: '₱3.00' }
-      ]
+  const normalizedGlobalQuery = globalSearchTerm.trim().toLowerCase();
+  const searchFilteredOrders = orders.filter((order) => {
+    if (!normalizedGlobalQuery) {
+      return true;
     }
-  ]);
 
-  const filteredOrders = selectedStatus === 'All Orders' ? orders : orders.filter(order => order.status === selectedStatus);
+    const searchableText = [
+      order.student,
+      order.id,
+      order.items,
+      order.status,
+      order.dateTime,
+      order.studentId,
+      order.email,
+      order.paymentMethod,
+      order.total
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return searchableText.includes(normalizedGlobalQuery);
+  });
+
+  const pendingOrders = orders.filter((order) => order.status === 'Pending');
+  const preparingOrders = orders.filter((order) => order.status === 'Preparing');
+  const readyOrders = orders.filter((order) => order.status === 'Ready');
+  const completedOrders = orders.filter((order) => order.status === 'Completed');
+  const activeOrders = orders.filter((order) => order.status !== 'Cancelled');
+  const queueOrdersCount = pendingOrders.length + preparingOrders.length;
+  const kitchenLoad = activeOrders.length > 0 ? Math.round((queueOrdersCount / activeOrders.length) * 100) : 0;
+
+  const parseAmount = (price) => {
+    const value = parseFloat(String(price).replace(/[^0-9.]/g, ''));
+    return Number.isNaN(value) ? 0 : value;
+  };
+
+  const completedRevenue = completedOrders.reduce((sum, order) => sum + parseAmount(order.total), 0);
+  const queuedRevenue = pendingOrders
+    .concat(preparingOrders)
+    .reduce((sum, order) => sum + parseAmount(order.total), 0);
+  const formattedCompletedRevenue = `₱${completedRevenue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedQueuedRevenue = `₱${queuedRevenue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const filteredOrders =
+    selectedStatus === 'All Orders'
+      ? searchFilteredOrders
+      : searchFilteredOrders.filter((order) => order.status === selectedStatus);
   
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
@@ -308,21 +263,34 @@ export default function OrdersManagement() {
 
       {/* Contextual Quick Actions (Floating Grid) */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <div className="bg-primary/5 p-6 rounded-xl border border-primary/10 flex flex-col gap-2">
+        <button
+          onClick={() => setSelectedStatus('Pending')}
+          className="bg-primary/5 p-6 rounded-xl border border-primary/10 flex flex-col gap-2 text-left transition-colors hover:bg-primary/10"
+          type="button"
+        >
           <span className="material-symbols-outlined text-primary text-3xl">pending_actions</span>
           <h3 className="font-headline font-bold text-lg text-on-surface">Queue Overview</h3>
-          <p className="text-sm text-on-surface-variant">4 orders are waiting for prep. Kitchen capacity at 65%.</p>
-        </div>
-        <div className="bg-tertiary-fixed/20 p-6 rounded-xl border border-tertiary-fixed/30 flex flex-col gap-2">
+          <p className="text-sm text-on-surface-variant">{queueOrdersCount} order{queueOrdersCount === 1 ? '' : 's'} are waiting for prep. Kitchen load is {kitchenLoad}%.</p>
+        </button>
+        <button
+          onClick={() => setSelectedStatus('Ready')}
+          className="bg-tertiary-fixed/20 p-6 rounded-xl border border-tertiary-fixed/30 flex flex-col gap-2 text-left transition-colors hover:bg-tertiary-fixed/30"
+          type="button"
+        >
           <span className="material-symbols-outlined text-tertiary text-3xl">notifications_active</span>
           <h3 className="font-headline font-bold text-lg text-on-surface">Ready Alerts</h3>
-          <p className="text-sm text-on-surface-variant">3 orders marked as Ready are awaiting student pickup.</p>
-        </div>
-        <div className="bg-secondary-container p-6 rounded-xl flex flex-col gap-2">
+          <p className="text-sm text-on-surface-variant">{readyOrders.length} order{readyOrders.length === 1 ? '' : 's'} marked as Ready are awaiting pickup.</p>
+        </button>
+        <button
+          onClick={() => setSelectedStatus('All Orders')}
+          className="bg-secondary-container p-6 rounded-xl flex flex-col gap-2 text-left transition-colors hover:brightness-95"
+          type="button"
+        >
           <span className="material-symbols-outlined text-secondary text-3xl">analytics</span>
           <h3 className="font-headline font-bold text-lg text-on-surface">Daily Summary</h3>
-          <p className="text-sm text-on-surface-variant">Total revenue today: ₱1,240.50 (+12% from yesterday).</p>
-        </div>
+          <p className="text-sm text-on-surface-variant">Completed revenue: {formattedCompletedRevenue} from {completedOrders.length} completed order{completedOrders.length === 1 ? '' : 's'}.</p>
+          <p className="text-xs text-on-surface-variant/80">Queued potential: {formattedQueuedRevenue}</p>
+        </button>
       </div>
       
       {/* Contextual FAB */}

@@ -1,9 +1,15 @@
-export default function Header() {
+export default function Header({ searchTerm, onSearchChange }) {
   return (
     <header className="sticky top-0 w-full z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl flex items-center justify-between px-8 h-16">
       <div className="flex items-center gap-4 bg-surface-container px-4 py-2 rounded-lg w-96">
         <span className="material-symbols-outlined text-zinc-400 text-sm">search</span>
-        <input className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-on-surface" placeholder="Search orders, students, or meals..." type="text"/>
+        <input
+          className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 text-on-surface"
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search orders, students, or meals..."
+          type="text"
+          value={searchTerm}
+        />
       </div>
       <div className="flex items-center gap-6">
         <button className="relative text-zinc-500 hover:text-primary transition-colors active:scale-95 transform">

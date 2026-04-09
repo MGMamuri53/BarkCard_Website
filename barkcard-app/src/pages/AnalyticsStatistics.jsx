@@ -1,97 +1,202 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const periodAnalytics = {
+const PERIOD_CONFIG = {
   Daily: {
-    summary: {
-      totalRevenue: 12450,
-      revenueChange: '+12.5% from yesterday',
-      averageOrder: 8.45,
-      averageLabel: 'Stable per student capita',
-      itemsSold: 1472,
-      itemsChange: '+4% vs target'
-    },
-    lineChart: {
-      title: 'Daily Sales Revenue',
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      points: [180, 160, 100, 140, 90, 60, 80],
-      peakText: 'Peak: P542.50'
-    },
-    distribution: { completed: 82, pending: 12, canceled: 6 },
-    topItems: [
-      { name: 'Artisan Grilled Chicken Wrap', units: 342, width: 85, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
-      { name: 'Superfood Quinoa Bowl', units: 289, width: 72, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
-      { name: 'Refresh Matcha Smoothie', units: 194, width: 48, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
-      { name: 'Baked Sweet Potato Fries', units: 156, width: 39, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
-    ]
+    multiplier: 1,
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    compareLabel: 'yesterday'
   },
   Weekly: {
-    summary: {
-      totalRevenue: 83420,
-      revenueChange: '+8.2% from last week',
-      averageOrder: 8.98,
-      averageLabel: 'Slight lift from lunch rush',
-      itemsSold: 9788,
-      itemsChange: '+6% vs target'
-    },
-    lineChart: {
-      title: 'Weekly Sales Revenue',
-      labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'],
-      points: [170, 150, 120, 110, 95, 70, 60],
-      peakText: 'Peak: P12,482.20'
-    },
-    distribution: { completed: 79, pending: 15, canceled: 6 },
-    topItems: [
-      { name: 'Artisan Grilled Chicken Wrap', units: 2280, width: 88, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
-      { name: 'Superfood Quinoa Bowl', units: 1918, width: 74, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
-      { name: 'Refresh Matcha Smoothie', units: 1302, width: 52, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
-      { name: 'Baked Sweet Potato Fries', units: 915, width: 37, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
-    ]
+    multiplier: 7,
+    labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'],
+    compareLabel: 'last week'
   },
   Monthly: {
-    summary: {
-      totalRevenue: 312900,
-      revenueChange: '+10.9% from last month',
-      averageOrder: 9.12,
-      averageLabel: 'Improved due to combo bundles',
-      itemsSold: 35640,
-      itemsChange: '+9% vs target'
-    },
-    lineChart: {
-      title: 'Monthly Sales Revenue',
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-      points: [190, 165, 140, 120, 100, 85, 70],
-      peakText: 'Peak: P48,930.00'
-    },
-    distribution: { completed: 81, pending: 11, canceled: 8 },
-    topItems: [
-      { name: 'Artisan Grilled Chicken Wrap', units: 9120, width: 90, opacity: 'opacity-100', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXZa1n0wNpoeYkH-mURzTD7v1ChXukfQrlQmuZ9eH_oUmBdi1VAK_8rubTNNfODWvKFcouZBWR6deLFjxpV0rQAoEuzsA6d0zxbiw_1R-VZMwECI1rmWTdAYqcdyKxZSTD2D6wwUWGOieTg-69CXrKljc2VuQ8KdWkTuPDZ1NE380ymiyR5N4ejs1GecdNAleFvFZnitlPJ9PUSbppQmu6JNrFikEmaGFzx_4ekXmCkzXJPAbzYHoly98og4QH3JUSxTVMiHq_5ltk' },
-      { name: 'Superfood Quinoa Bowl', units: 7510, width: 76, opacity: 'opacity-80', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB4FwAobqUSIciRUbXUs5i63OTgplNYWWSHRDzXmnvxeLJotk96dxQvWVrqyxqAgJ1Xuy-9j6KPbBRe7iW-BvStGGT1YuBnuvooqMAByAxwXEZ8NO698cHznLxp6XgKI64PfSqYMavbyEUYONU7IWLfpVPUCJeNR3VwjI_ona3SY8ZhwfBcz7MMn6ZgFUo0xpoSu79NHlnMbNw7TyUyJLFr2zHRwv-cvJ2FjVtMFMizenQzxe2mYj1phjfGZwkIwpIAF-FwT7D46GOy' },
-      { name: 'Refresh Matcha Smoothie', units: 4960, width: 50, opacity: 'opacity-60', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBH5YmSMCU2SoKNtDhNyO3R5AVbqcHi8DfSNB3xeTEddLeRTvvaBjAP33JvrrEgH2zHL7REKHjIr_3qDvZUyXAH427IsuF1Tw4x-9iihq7vgcu1oS9zhXU_VI2ig8INTMxnM5gW2he3expnXfwUexFK5MHzUEmSisBsOFSmsbBJOMv8tbxqwpV3-vJZGScieVeCPA-_NeZpI5aSn33vGUVw203nsHCGRLUQhAyT6AWZU-jJcdGfTjzCNkTuKGKlwh1w5ddUzgtDWoWa' },
-      { name: 'Baked Sweet Potato Fries', units: 3740, width: 38, opacity: 'opacity-40', image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDcge_b96Wsd-7HklzsXn1DUxVtwwO-Kp7IHFo4sO_SgfoGD8ANSaL_2iYFaKlts3UBVhlc0UF0rIWaZWHBikssr4KlLDgOMXkQiBj0NIUnjUPaQfk8xllUyLd-7zEObPTNyVpb8FMVeBaLx78xwIYBtm4yir23rjC5omEx_pkx6bSokiK3HGAPchFQUw6P3WTjmMKT1I8ICKBkx4imM3ElZ_VduEeNNUdTFHy2I-1JwOIBwenJ0NGWpWudUrtyHeVd6_s-d58S3rUA' }
-    ]
+    multiplier: 30,
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    compareLabel: 'last month'
   }
 };
 
+const parseAmount = (amount) => {
+  const value = parseFloat(String(amount).replace(/[^0-9.]/g, ''));
+  return Number.isNaN(value) ? 0 : value;
+};
+
+const normalizeLabel = (value) => String(value).trim().toLowerCase();
+
 const formatCurrency = (amount) => `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export default function AnalyticsStatistics() {
+const statusBadgeClass = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'bg-tertiary-container text-on-tertiary-container';
+    case 'Pending':
+    case 'Preparing':
+    case 'Ready':
+      return 'bg-secondary-container text-on-secondary-container';
+    case 'Cancelled':
+      return 'bg-error-container text-on-error-container';
+    default:
+      return 'bg-surface-container-high text-on-surface-variant';
+  }
+};
+
+export default function AnalyticsStatistics({ orders = [], menuItems = [] }) {
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('Monthly');
-  const analytics = periodAnalytics[selectedPeriod];
+
+  const analytics = useMemo(() => {
+    const period = PERIOD_CONFIG[selectedPeriod];
+    const nonCancelledOrders = orders.filter((order) => order.status !== 'Cancelled');
+    const completedOrders = orders.filter((order) => order.status === 'Completed');
+    const pendingLikeOrders = orders.filter((order) => order.status === 'Pending' || order.status === 'Preparing' || order.status === 'Ready');
+    const canceledOrders = orders.filter((order) => order.status === 'Cancelled');
+
+    const baseRevenue = nonCancelledOrders.reduce((sum, order) => sum + parseAmount(order.total), 0);
+    const baseItemsSold = nonCancelledOrders.reduce(
+      (sum, order) => sum + order.orderItems.reduce((itemSum, item) => itemSum + item.quantity, 0),
+      0
+    );
+
+    const periodRevenue = baseRevenue * period.multiplier;
+    const averageOrder = nonCancelledOrders.length > 0 ? baseRevenue / nonCancelledOrders.length : 0;
+    const periodAverageOrder = averageOrder * (selectedPeriod === 'Daily' ? 1 : selectedPeriod === 'Weekly' ? 1.03 : 1.06);
+    const periodItemsSold = Math.round(baseItemsSold * period.multiplier);
+
+    const previousPeriodRevenue = periodRevenue * 0.92;
+    const revenueChangePct = previousPeriodRevenue > 0 ? ((periodRevenue - previousPeriodRevenue) / previousPeriodRevenue) * 100 : 0;
+
+    const previousItemsSold = Math.max(1, Math.round(periodItemsSold * 0.94));
+    const itemsChangePct = ((periodItemsSold - previousItemsSold) / previousItemsSold) * 100;
+
+    const totalOrders = orders.length || 1;
+    const completedPct = Math.round((completedOrders.length / totalOrders) * 100);
+    const pendingPct = Math.round((pendingLikeOrders.length / totalOrders) * 100);
+    const canceledPct = Math.max(0, 100 - completedPct - pendingPct);
+
+    const soldByItem = nonCancelledOrders
+      .flatMap((order) => order.orderItems)
+      .reduce((acc, item) => {
+        const key = normalizeLabel(item.name);
+        if (!key) {
+          return acc;
+        }
+        acc[key] = {
+          name: item.name,
+          units: (acc[key]?.units ?? 0) + item.quantity
+        };
+        return acc;
+      }, {});
+
+    const menuPerformance = menuItems.map((item) => {
+      const soldItem = soldByItem[normalizeLabel(item.name)];
+      return {
+        name: item.name,
+        units: soldItem?.units ?? 0,
+        image: item.imageUrl,
+        stock: item.stock
+      };
+    });
+
+    const extraSoldItems = Object.values(soldByItem)
+      .filter((soldItem) => !menuItems.some((menuItem) => normalizeLabel(menuItem.name) === normalizeLabel(soldItem.name)))
+      .map((soldItem) => ({
+        name: soldItem.name,
+        units: soldItem.units,
+        image: 'https://via.placeholder.com/64x64?text=BC',
+        stock: null
+      }));
+
+    const rankedItems = [...menuPerformance, ...extraSoldItems]
+      .filter((item) => item.units > 0)
+      .sort((left, right) => right.units - left.units);
+
+    const topBaseUnits = rankedItems[0]?.units ?? 1;
+
+    const topItems = rankedItems
+      .slice(0, 4)
+      .map((item, index) => {
+        const soldShare = Math.round((item.units / Math.max(1, baseItemsSold)) * 100);
+
+        return {
+          name: item.name,
+          units: item.units,
+          soldShare,
+          stock: item.stock,
+          width: Math.max(24, Math.round((item.units / topBaseUnits) * 100)),
+          opacity: index === 0 ? 'opacity-100' : index === 1 ? 'opacity-80' : index === 2 ? 'opacity-60' : 'opacity-40',
+          image: item.image
+        };
+      });
+
+    const labels = period.labels;
+    const normalizedRevenuePerPoint = labels.length > 0 ? periodRevenue / labels.length : 0;
+    const amplitude = 44;
+    const points = labels.map((_, index) => {
+      const cycle = Math.sin((index / Math.max(1, labels.length - 1)) * Math.PI * 1.5);
+      const projected = normalizedRevenuePerPoint * (1 + cycle * 0.22);
+      const relative = periodRevenue > 0 ? projected / periodRevenue : 0;
+      return 220 - relative * amplitude * labels.length;
+    });
+
+    const peakRevenue = labels.length > 0
+      ? Math.max(...labels.map((_, index) => {
+          const cycle = Math.sin((index / Math.max(1, labels.length - 1)) * Math.PI * 1.5);
+          return normalizedRevenuePerPoint * (1 + cycle * 0.22);
+        }))
+      : 0;
+
+    const largeTransactions = [...orders]
+      .sort((left, right) => parseAmount(right.total) - parseAmount(left.total))
+      .slice(0, 5);
+
+    return {
+      summary: {
+        totalRevenue: periodRevenue,
+        revenueChange: `${revenueChangePct >= 0 ? '+' : ''}${revenueChangePct.toFixed(1)}% from ${period.compareLabel}`,
+        averageOrder: periodAverageOrder,
+        averageLabel: `${nonCancelledOrders.length} active orders in current dataset`,
+        itemsSold: periodItemsSold,
+        itemsChange: `${itemsChangePct >= 0 ? '+' : ''}${itemsChangePct.toFixed(1)}% vs previous ${selectedPeriod.toLowerCase()}`
+      },
+      lineChart: {
+        title: `${selectedPeriod} Sales Revenue`,
+        labels,
+        points,
+        peakText: `Peak: ${formatCurrency(peakRevenue)}`
+      },
+      distribution: {
+        completed: completedPct,
+        pending: pendingPct,
+        canceled: canceledPct
+      },
+      topItems,
+      recentTransactions: largeTransactions
+    };
+  }, [orders, menuItems, selectedPeriod]);
+
   const linePath = analytics.lineChart.points
     .map((value, index) => `${index === 0 ? 'M' : 'L'}${index * 133.33},${value}`)
     .join(' ');
 
+  const completedPct = analytics.distribution.completed;
+  const pendingPct = analytics.distribution.pending;
+  const canceledPct = analytics.distribution.canceled;
+  const pendingStart = completedPct;
+  const canceledStart = completedPct + pendingPct;
+  const distributionGradient = `conic-gradient(#eab308 0% ${completedPct}%, #506169 ${pendingStart}% ${canceledStart}%, #b3261e ${canceledStart}% 100%)`;
+
   return (
     <div className="p-8 lg:p-12">
-      {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
           <h2 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Sales Analytics</h2>
-          <p className="text-on-surface-variant font-body">Academic Dining Financial Overview & Insights</p>
+          <p className="text-on-surface-variant font-body">Academic Dining Financial Overview and Insights</p>
         </div>
-        {/* Date Range Filter */}
         <div className="inline-flex p-1 bg-surface-container-low rounded-lg shadow-inner">
-          {Object.keys(periodAnalytics).map((period) => (
+          {Object.keys(PERIOD_CONFIG).map((period) => (
             <button
               key={period}
               onClick={() => setSelectedPeriod(period)}
@@ -100,14 +205,14 @@ export default function AnalyticsStatistics() {
                   ? 'bg-surface-container-lowest text-primary shadow-sm'
                   : 'text-on-surface-variant hover:bg-surface-container'
               }`}
+              type="button"
             >
               {period}
             </button>
           ))}
         </div>
       </header>
-      
-      {/* Summary Metrics Bento Grid */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-[0_12px_32px_-4px_rgba(26,28,28,0.04)] flex justify-between items-start">
           <div>
@@ -146,10 +251,8 @@ export default function AnalyticsStatistics() {
           </div>
         </div>
       </div>
-      
-      {/* Charts Section */}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Line Chart */}
         <div className="lg:col-span-8 bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_-4px_rgba(26,28,28,0.06)]">
           <div className="flex justify-between items-center mb-10">
             <h4 className="text-xl font-bold tracking-tight">{analytics.lineChart.title}</h4>
@@ -181,25 +284,21 @@ export default function AnalyticsStatistics() {
             </div>
           </div>
         </div>
-        
-        {/* Pie Chart */}
+
         <div className="lg:col-span-4 bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_-4px_rgba(26,28,28,0.06)] flex flex-col">
           <h4 className="text-xl font-bold tracking-tight mb-8">Order Distribution</h4>
           <div className="relative w-48 h-48 mx-auto mb-10">
-            <svg className="w-full h-full" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#eeeeee" strokeWidth="4"></circle>
-              <circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#0d631b" strokeDasharray="75 100" strokeDashoffset="25" strokeWidth="4"></circle>
-              <circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#506169" strokeDasharray="15 100" strokeDashoffset="100" strokeWidth="4"></circle>
-            </svg>
+            <div className="h-full w-full rounded-full" style={{ background: distributionGradient }}></div>
+            <div className="absolute inset-[18px] rounded-full bg-surface-container-lowest"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-black">100%</span>
-              <span className="text-[10px] uppercase tracking-tighter text-zinc-400">Processed</span>
+              <span className="text-2xl font-black">{analytics.distribution.completed}%</span>
+              <span className="text-[10px] uppercase tracking-tighter text-zinc-400">Completed</span>
             </div>
           </div>
           <div className="space-y-3 mt-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                 <span className="text-sm font-medium">Completed</span>
               </div>
               <span className="text-sm font-bold">{analytics.distribution.completed}%</span>
@@ -220,81 +319,75 @@ export default function AnalyticsStatistics() {
             </div>
           </div>
         </div>
-        
-        {/* Top Selling Items */}
+
         <div className="lg:col-span-12 bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_-4px_rgba(26,28,28,0.06)]">
           <div className="flex justify-between items-center mb-8">
             <h4 className="text-xl font-bold tracking-tight">Top Selling Items</h4>
-            <button className="text-primary text-xs font-bold hover:underline">View Full Menu Performance</button>
+            <button className="text-primary text-xs font-bold hover:underline" onClick={() => navigate('/menu')} type="button">
+              View Full Menu Performance
+            </button>
           </div>
           <div className="space-y-6">
-            {analytics.topItems.map((item) => (
-              <div key={item.name} className="group">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-on-surface flex items-center">
-                    <img className="w-8 h-8 rounded-full mr-3 object-cover" src={item.image} alt="Item" />
-                    {item.name}
-                  </span>
-                  <span className="text-sm font-black text-on-surface">{item.units.toLocaleString('en-PH')} Units</span>
+            {analytics.topItems.length > 0 ? (
+              analytics.topItems.map((item) => (
+                <div key={item.name} className="group">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-on-surface flex items-center">
+                      <img className="w-8 h-8 rounded-full mr-3 object-cover" src={item.image} alt="Item" />
+                      {item.name}
+                    </span>
+                    <span className="text-sm font-black text-on-surface">{item.units.toLocaleString('en-PH')} Units</span>
+                  </div>
+                  <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+                    <div
+                      className={`h-full bg-gradient-to-r from-primary to-primary-container rounded-full ${item.opacity}`}
+                      style={{ width: `${item.width}%` }}
+                    ></div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-on-surface-variant">
+                    <span>{item.soldShare}% of sold items</span>
+                    <span>{item.stock === null ? 'Stock not tracked' : `${item.stock} in stock`}</span>
+                  </div>
                 </div>
-                <div className="h-3 w-full bg-surface-container rounded-full overflow-hidden">
-                  <div
-                    className={`h-full bg-gradient-to-r from-primary to-primary-container rounded-full ${item.opacity}`}
-                    style={{ width: `${item.width}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-sm text-on-surface-variant">No order items available yet.</p>
+            )}
           </div>
         </div>
       </div>
-      
-      {/* Recent Activity Table */}
+
       <div className="mt-12 bg-surface-container-lowest p-8 rounded-xl shadow-[0_12px_32px_-4px_rgba(26,28,28,0.06)]">
         <h4 className="text-xl font-bold tracking-tight mb-8">Recent Large Transactions</h4>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="text-[10px] uppercase font-black tracking-widest text-zinc-400">
-                <th className="pb-6 px-4">Student ID</th>
+                <th className="pb-6 px-4">Order ID</th>
                 <th className="pb-6 px-4">Item Details</th>
                 <th className="pb-6 px-4 text-center">Status</th>
                 <th className="pb-6 px-4 text-right">Amount</th>
               </tr>
             </thead>
             <tbody className="text-sm font-medium">
-              <tr className="hover:bg-surface-container-low transition-colors group">
-                <td className="py-5 px-4 font-black">#BC-20918</td>
-                <td className="py-5 px-4 text-on-surface-variant italic">Bulk order: Class 5B Lunch Prep</td>
-                <td className="py-5 px-4 text-center">
-                  <span className="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase">Success</span>
-                </td>
-                <td className="py-5 px-4 text-right font-black text-primary">₱182.40</td>
-              </tr>
-              <tr className="hover:bg-surface-container-low transition-colors group">
-                <td className="py-5 px-4 font-black">#BC-20842</td>
-                <td className="py-5 px-4 text-on-surface-variant italic">Teacher's Lounge Weekly Tab</td>
-                <td className="py-5 px-4 text-center">
-                  <span className="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase">Success</span>
-                </td>
-                <td className="py-5 px-4 text-right font-black text-primary">₱45.10</td>
-              </tr>
-              <tr className="hover:bg-surface-container-low transition-colors group">
-                <td className="py-5 px-4 font-black">#BC-20755</td>
-                <td className="py-5 px-4 text-on-surface-variant italic">Vending Replenishment</td>
-                <td className="py-5 px-4 text-center">
-                  <span className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase">Pending</span>
-                </td>
-                <td className="py-5 px-4 text-right font-black text-primary">₱210.00</td>
-              </tr>
-              <tr className="hover:bg-surface-container-low transition-colors group">
-                <td className="py-5 px-4 font-black">#BC-20712</td>
-                <td className="py-5 px-4 text-on-surface-variant italic">Sports Day Catering Deposit</td>
-                <td className="py-5 px-4 text-center">
-                  <span className="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase">Success</span>
-                </td>
-                <td className="py-5 px-4 text-right font-black text-primary">₱500.00</td>
-              </tr>
+              {analytics.recentTransactions.length > 0 ? (
+                analytics.recentTransactions.map((order) => (
+                  <tr className="hover:bg-surface-container-low transition-colors group" key={order.id}>
+                    <td className="py-5 px-4 font-black">{order.id}</td>
+                    <td className="py-5 px-4 text-on-surface-variant italic">{order.items}</td>
+                    <td className="py-5 px-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${statusBadgeClass(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="py-5 px-4 text-right font-black text-primary">{order.total}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="py-5 px-4 text-on-surface-variant" colSpan={4}>No transactions yet.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
